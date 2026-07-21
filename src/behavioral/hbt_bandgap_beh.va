@@ -1,0 +1,44 @@
+// Block 2 - SiGe HBT bandgap reference, current-summed (Malcovati-style)
+// architecture targeting ~1.0V supply. Real topology: two diode-connected
+// HBTs (area ratio N) generate a PTAT current I_ptat = Vt*ln(N)/R1 via a
+// loop-forcing amplifier (in the real schematic, this is Block 1's ring-amp
+// OTA holding the two mirror nodes equal - not modeled explicitly here
+// since it doesn't change this block's input/output equation, only its
+// internal accuracy/settling). A separate VBE/R2 branch gives a CTAT
+// current I_ctat. Both are mirrored into output resistor R3, so
+// Vref = R3*(k1*I_ptat + k2*I_ctat), a resistor ratio - NOT a series
+// VBE stack - which is what allows Vref and the whole loop to live
+// comfortably under 1.2V. See Malcovati et al., IEEE JSSC, July 2001.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module hbt_bandgap_beh(vref, vdd, vss);
+    output vref;
+    input vdd, vss;
+    electrical vref, vdd, vss;
+
+    parameter real n_ratio = 8;       // emitter area ratio between the two HBTs
+    parameter real r1      = 20k;     // ohms, sets I_ptat = Vt*ln(N)/R1
+    parameter real r2      = 50k;     // ohms, sets I_ctat = Vbe/R2
+    parameter real r3      = 20k;     // ohms, output resistor - sets Vref scale (~0.48V nominal)
+    parameter real k1      = 3.3484;  // PTAT mirror ratio - solved for first-order TC
+                                        // cancellation given r1/r2/tc_vbe below; verified
+                                        // in src/spice/bandgap_tc.cir (<1uV drift, 0-80C,
+                                        // in this idealized linear-Vbe(T) model)
+    parameter real k2      = 1;       // CTAT mirror ratio
+    parameter real vbe0    = 0.75;    // HBT Vbe at low bias current, Tnom (V)
+    parameter real tc_vbe  = 1.5m;    // Vbe temperature coefficient, magnitude (V/K)
+    parameter real tnom    = 300;     // reference temperature (K)
+
+    real vt, vbe, i_ptat, i_ctat;
+
+    analog begin
+        vt  = $temperature * `P_K / `P_Q;
+        vbe = vbe0 - tc_vbe * ($temperature - tnom);
+
+        i_ptat = vt * ln(n_ratio) / r1;
+        i_ctat = vbe / r2;
+
+        V(vref) <+ r3 * (k1 * i_ptat + k2 * i_ctat);
+    end
+endmodule

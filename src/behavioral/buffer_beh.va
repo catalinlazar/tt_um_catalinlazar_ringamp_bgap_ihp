@@ -1,0 +1,35 @@
+// Shared output buffer - generic placeholder, topology TBD (source follower
+// is the leading candidate: minimal transistor count, well-understood
+// layout, trivial to characterize and de-embed).
+//
+// This SAME instance sits in the signal path for every block (ring-amp,
+// both bandgaps) AND is the thing measured directly in buffer-only
+// characterization mode (see top-level wrapper: buf_bypass routes ua_in
+// straight into this instance's input). Deliberately not duplicated
+// anywhere - a second "identical" copy would reintroduce exactly the
+// mismatch this structure is meant to eliminate.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module buffer_beh(in, out, vdd, vss);
+    input in, vdd, vss;
+    output out;
+    electrical in, out, vdd, vss;
+
+    parameter real gain    = 0.98;   // near-unity, placeholder for follower body effect / gain error
+    parameter real offset  = 0.0;    // input-referred offset (V) - characterize once real, sweep in Monte Carlo
+    parameter real bw      = 20M;    // -3dB bandwidth (Hz), placeholder
+
+    real vout_ideal;
+
+    analog begin
+        vout_ideal = gain * (V(in) + offset);
+
+        if (vout_ideal > V(vdd))
+            vout_ideal = V(vdd);
+        else if (vout_ideal < V(vss))
+            vout_ideal = V(vss);
+
+        V(out) <+ laplace_np(vout_ideal, {1}, {1, 1 / (2 * `M_PI * bw)});
+    end
+endmodule

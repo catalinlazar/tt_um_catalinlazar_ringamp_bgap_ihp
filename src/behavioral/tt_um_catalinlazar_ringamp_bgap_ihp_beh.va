@@ -1,0 +1,68 @@
+// Top-level behavioral model: tt_um_catalinlazar_ringamp_bgap_ihp
+//
+// Wires the four block-level behavioral models together the same way the
+// real tile will be wired: the comparator (Block 0) taps the shared bus
+// directly and drives its digital output independent of the mux; the
+// ring-amp OTA (Block 1), HBT bandgap (Block 2), and SC bandgap (Block 3)
+// share ua_out through a 2-bit digitally controlled mux, followed by a
+// SINGLE shared output buffer instance.
+//
+// buf_bypass (ui[3]) forces the buffer's input to connect directly to
+// ua_in instead of the mux output, for buffer-only characterization -
+// deliberately the SAME buffer instance in both cases (not a duplicate
+// copy), so buffer non-idealities measured in bypass mode can be
+// de-embedded from the block measurements without introducing new
+// instance-to-instance mismatch.
+//
+// Use this for early top-level verification (does the pin map make sense,
+// does the mux selection work, do block interactions look reasonable)
+// BEFORE transistor-level schematics exist. Replace block instances with
+// real subcircuits as each is designed; the port list should not need to
+// change.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module tt_um_catalinlazar_ringamp_bgap_ihp_beh(
+    sel0, sel1,      // ui[0], ui[1] - mux block select (0=idle,1=ringamp,2=hbt bgap,3=sc bgap)
+    comp_clk,        // ui[2] - comparator clock / SC bandgap clock
+    buf_bypass,      // ui[3] - 1: buffer input = ua_in directly (buffer-only characterization)
+    ua_in,           // ua[0] - shared analog input
+    ua_out,          // ua[1] - shared analog output (buffer output, always)
+    ua_ref,          // ua[2] - shared reference/second input
+    uo_comp,         // uo[0] - comparator digital output (direct, not muxed, not buffered)
+    vdd, vss
+);
+    input sel0, sel1, comp_clk, buf_bypass, ua_in, ua_ref, vdd, vss;
+    output ua_out, uo_comp;
+    electrical sel0, sel1, comp_clk, buf_bypass, ua_in, ua_out, ua_ref, uo_comp, vdd, vss;
+
+    electrical ringamp_out, hbtbg_out, scbg_out, mux_out, buf_in;
+
+    parameter real vth_dig = 0.6; // digital logic threshold on sel0/sel1/buf_bypass (V)
+
+    real s0, s1, sbyp, selcode;
+
+    comparator_beh   U_CMP(.clk(comp_clk), .inp(ua_in), .inn(ua_ref), .out(uo_comp), .vdd(vdd), .vss(vss));
+    ringamp_ota_beh  U_RA (.inp(ua_in), .inn(ua_ref), .out(ringamp_out), .vdd(vdd), .vss(vss));
+    hbt_bandgap_beh  U_HBT(.vref(hbtbg_out), .vdd(vdd), .vss(vss));
+    sc_bandgap_beh   U_SC (.clk(comp_clk), .vref(scbg_out), .vdd(vdd), .vss(vss));
+    buffer_beh       U_BUF(.in(buf_in), .out(ua_out), .vdd(vdd), .vss(vss));
+
+    analog begin
+        s0   = (V(sel0) > vth_dig) ? 1 : 0;
+        s1   = (V(sel1) > vth_dig) ? 1 : 0;
+        sbyp = (V(buf_bypass) > vth_dig) ? 1 : 0;
+        selcode = s1 * 2 + s0;
+
+        if (selcode == 1)
+            V(mux_out) <+ V(ringamp_out);
+        else if (selcode == 2)
+            V(mux_out) <+ V(hbtbg_out);
+        else if (selcode == 3)
+            V(mux_out) <+ V(scbg_out);
+        else
+            V(mux_out) <+ V(vss); // selcode == 0: idle
+
+        V(buf_in) <+ (sbyp > 0) ? V(ua_in) : V(mux_out);
+    end
+endmodule

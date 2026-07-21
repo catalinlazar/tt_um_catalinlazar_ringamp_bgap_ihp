@@ -1,0 +1,27 @@
+// Block 3 - Switched-capacitor ("end-of-life") bandgap
+// Behavioral stand-in: same nominal reference as Block 2, with a clock-phase
+// dependent ripple standing in for the SC sampling/chopping behavior.
+// Conceptually built from Block 0 (chop/phase control) and Block 1 (OTA core)
+// - once real schematics exist, this should instantiate those blocks rather
+// than approximate them.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module sc_bandgap_beh(clk, vref, vdd, vss);
+    input clk, vdd, vss;
+    output vref;
+    electrical clk, vref, vdd, vss;
+
+    parameter real vref_nom = 0.70;   // nominal reference output (V)
+    parameter real ripple   = 2m;     // clock-correlated ripple amplitude (V)
+    parameter real vth_clk  = 0.6;    // clock logic threshold (V)
+
+    real phase;
+
+    analog begin
+        @(cross(V(clk) - vth_clk, +1)) phase = 1;
+        @(cross(V(clk) - vth_clk, -1)) phase = 0;
+
+        V(vref) <+ vref_nom + (phase > 0 ? ripple : -ripple);
+    end
+endmodule

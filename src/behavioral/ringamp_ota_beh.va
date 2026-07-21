@@ -1,0 +1,30 @@
+// Block 1 - Ring-amplifier / FEA-style OTA
+// Behavioral stand-in: single-pole gain block with output clipping at the
+// rails. Does NOT model the ring-amp's actual open-loop ringing/settling
+// behavior - refine once the real topology is chosen and simulated.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module ringamp_ota_beh(inp, inn, out, vdd, vss);
+    input inp, inn, vdd, vss;
+    output out;
+    electrical inp, inn, out, vdd, vss;
+
+    parameter real av0 = 1000;      // open-loop DC gain (V/V)
+    parameter real gbw = 50M;       // gain-bandwidth product (Hz)
+
+    real vdiff, vmid, vout_ideal;
+
+    analog begin
+        vdiff     = V(inp) - V(inn);
+        vmid      = (V(vdd) + V(vss)) / 2;
+        vout_ideal = vmid + av0 * vdiff;
+
+        if (vout_ideal > V(vdd))
+            vout_ideal = V(vdd);
+        else if (vout_ideal < V(vss))
+            vout_ideal = V(vss);
+
+        V(out) <+ laplace_np(vout_ideal, {1}, {1, 1 / (2 * `M_PI * gbw)});
+    end
+endmodule

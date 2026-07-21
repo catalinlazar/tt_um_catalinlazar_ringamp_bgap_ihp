@@ -1,0 +1,21 @@
+* Block 0 - comparator, static decision transfer curve (gated by clk high)
+* Note: this checks the trip point / offset / output swing of the decision
+* function only - it does NOT test the edge-triggered sampling behavior of
+* the real Verilog-A model (which needs the OSDI/Verilog-A toolchain, or
+* transistor-level transient sim, to verify properly).
+.param vdd=1.0 vss=0 offset=5m
+
+Vinp inp 0 DC 0
+Vinn inn 0 DC 0.5
+Vid vid 0 DC 0
+Bvinp_eff vip 0 V = v(inn)+v(vid)
+
+Bout out 0 V = (v(vip)-v(inn)+offset) > 0 ? vdd : vss
+
+.dc Vid -0.05 0.05 0.0005
+
+.control
+run
+wrdata comparator_dc.txt v(vid) v(out)
+.endc
+.end

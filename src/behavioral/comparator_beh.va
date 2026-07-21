@@ -1,0 +1,24 @@
+// Block 0 - Dynamic latched comparator (StrongARM/double-tail style)
+// Behavioral stand-in for top-level verification. NOT a transistor-level model.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module comparator_beh(clk, inp, inn, out, vdd, vss);
+    input clk, inp, inn, vdd, vss;
+    output out;
+    electrical clk, inp, inn, out, vdd, vss;
+
+    parameter real vth_clk = 0.6;     // clock logic threshold (V)
+    parameter real offset  = 0.0;     // input-referred offset, sweep in Monte Carlo (V)
+    parameter real tdelay  = 200p;    // regeneration delay (s)
+    parameter real trans   = 50p;     // output transition time (s)
+
+    real decision;
+
+    analog begin
+        @(cross(V(clk) - vth_clk, +1)) begin
+            decision = ((V(inp) - V(inn)) + offset > 0.0) ? V(vdd) : V(vss);
+        end
+        V(out) <+ transition(decision, tdelay, trans);
+    end
+endmodule

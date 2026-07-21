@@ -1,0 +1,14 @@
+* Block 2 - HBT bandgap, current-summed model - temperature sweep
+.param n_ratio=8 r1=20k r2=50k r3=20k k1=3.3484 k2=1 vbe0=0.75 tc_vbe=1.5m tnom=300
+.param kq=8.617333e-5
+
+Bvref vref 0 V = r3*(k1*(kq*(temper+273.15)*ln(n_ratio)/r1) + k2*((vbe0-tc_vbe*((temper+273.15)-tnom))/r2))
+Rload vref 0 1meg
+
+.dc TEMP 0 80 1
+
+.control
+run
+wrdata bandgap_tc.txt v(vref)
+.endc
+.end

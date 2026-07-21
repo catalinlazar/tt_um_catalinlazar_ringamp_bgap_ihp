@@ -1,0 +1,19 @@
+* Block 1 - Ring-amp OTA, small-signal AC test
+* Single-pole model: ideal VCVS gain av0 into RC pole at gbw/av0
+.param av0=1000 gbw=50meg
+.param rpole=1k
+.param cpole={1/(2*3.14159265*rpole*(gbw/av0))}
+
+Vin inp 0 DC 0 AC 1
+Vinn inn 0 DC 0
+Eideal outi 0 inp inn {av0}
+Rpole outi outo {rpole}
+Cpole outo 0 {cpole}
+
+.ac dec 20 1 1g
+
+.control
+run
+wrdata ringamp_ac.txt mag(v(outo)) phase(v(outo))
+.endc
+.end

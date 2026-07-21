@@ -1,0 +1,28 @@
+* Top-level mux + shared buffer test: step sel0/sel1 through 0,1,2,3, and
+* separately test buf_bypass routing ua_in straight into the SAME buffer.
+.param v_ringamp=0.30 v_hbtbg=0.48 v_scbg=0.55 vdd=1.0
+.param buf_gain=0.98
+
+Vsel0 sel0 0 PWL(0 0  10u 0  10.001u 1  20u 1  20.001u 0  30u 0  30.001u 1  40u 1  50.001u 0)
+Vsel1 sel1 0 PWL(0 0  20u 0  20.001u 1  50u 1  50.001u 0)
+Vbyp  byp  0 PWL(0 0  50u 0  50.001u 1  60u 1)
+Vain  ua_in 0 PWL(0 0.20  50u 0.20  60u 0.20)
+
+Bringamp ringamp_out 0 V = {v_ringamp}
+Bhbtbg   hbtbg_out   0 V = {v_hbtbg}
+Bscbg    scbg_out    0 V = {v_scbg}
+
+Bmux mux_out 0 V = (v(sel1)<0.5 && v(sel0)<0.5) ? 0 :
++ (v(sel1)<0.5 && v(sel0)>=0.5) ? v(ringamp_out) :
++ (v(sel1)>=0.5 && v(sel0)<0.5) ? v(hbtbg_out) : v(scbg_out)
+
+Bbufin buf_in 0 V = (v(byp)>0.5) ? v(ua_in) : v(mux_out)
+Bbufout ua_out 0 V = {buf_gain}*v(buf_in)
+
+.tran 0.1u 60u
+
+.control
+run
+wrdata mux_buf_tb.txt v(sel1) v(sel0) v(byp) v(buf_in) v(ua_out)
+.endc
+.end

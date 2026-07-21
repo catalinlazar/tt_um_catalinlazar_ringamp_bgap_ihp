@@ -1,41 +1,73 @@
-# Tiny Tapeout project information
+# ============================================================================
+# PROJECT NAME TOKEN — if you rename this project later, find-and-replace this
+# EXACT string in every file listed in this repo (info.yaml, docs/info.md,
+# README.md, gds/ filenames, top_module below, and the GitHub repo name
+# itself). The name must stay identical everywhere: repo name, top_module,
+# and final GDS/LEF filenames.
+#
+#   PROJECT_NAME = tt_um_catalinlazar_ringamp_bgap_ihp
+#
+# ============================================================================
+
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Analog" # other examples include Verilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
+  wokwi_id: 0                  # not used for custom-GDS/analog projects
+  title:        "SG13G2 Analog Primitives: Comparator, Ring-Amp OTA & Dual Bandgap"
+  author:       "Catalin Lazar"
+  discord:      ""             # optional, add your Discord username
+  description: >
+    A library of four reusable SG13G2 analog primitives, all targeting a
+    ~1.0V supply, on a single 1x2 analog tile: a StrongARM/double-tail
+    dynamic comparator, a ring-amplifier (FEA-style) OTA, a SiGe HBT bandgap
+    reference using a Malcovati-style current-summed (not series-stacked)
+    architecture to reach 1.0V despite the ~1.2V physical bandgap voltage
+    constant, and a switched-capacitor ("end-of-life" style) bandgap built
+    from the first two blocks. Blocks are time-multiplexed onto the shared
+    analog pins via a digitally controlled analog mux. Believed to be the
+    first HBT-based bandgap reference on any open-PDK Tiny Tapeout shuttle
+    (existing TT bandgaps are Sky130/CMOS-only). Submitted as Chipalooza
+    Round 1 IP, and as Phase 1 toward a future cyclic-ADC proposal.
+  language:     "Analog"       # custom full-custom analog, not synthesized HDL
+  clock_hz:     0               # no fixed digital clock; comparator clock is
+                                 # provided externally via a digital pin (see pinout)
 
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x2"          # Valid values for analog projects: 1x2, 2x2
+  # --- Analog / custom-GDS specific fields ---
+  tiles:        "1x2"           # analog projects must be 1x2 or 2x2
+  analog_pins:  3                # ua[0], ua[1], ua[2] — shared mux bus
+                                  # (confirm exact field name/schema against the
+                                  #  live ttsky-analog-template info.yaml — TT's
+                                  #  schema has changed between shuttle versions)
+  uses_3v3:     false            # set true only if you need the 3.3V pad variant
 
-  # How many analog pins does your project use?
-  analog_pins: 2        # Valid values: 0 to 6
-  uses_vapwr: false       # Set to true if your project uses second analog power supply (VAPWR) in addition to 1.8V (VDPWR)
+  top_module:   "tt_um_catalinlazar_ringamp_bgap_ihp"
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  source_files:
+    - "src/behavioral/comparator_beh.va"
+    - "src/behavioral/ringamp_ota_beh.va"
+    - "src/behavioral/hbt_bandgap_beh.va"
+    - "src/behavioral/sc_bandgap_beh.va"
+    - "src/behavioral/buffer_beh.va"
+    - "src/behavioral/tt_um_catalinlazar_ringamp_bgap_ihp_beh.va"
+    # add xschem/ schematics and spice/ testbenches here as they're created;
+    # the final submission needs the GDS/LEF in gds/, not these behavioral
+    # files — this list is for documentation/simulation reference
 
-  # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
-  source_files:        
-    - "project.v"
-
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
+# ----------------------------------------------------------------------------
+# Digital pins — all currently reserved/unused (mux select + status only).
+# Do NOT leave digital outputs floating: tie unused uo_out/uio_out/uio_oe to 0.
+# ----------------------------------------------------------------------------
 pinout:
-  # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
+  # Inputs — used as analog-mux block-select and comparator clock
+  ui[0]: "mux_sel[0] - select active analog block (0-3)"
+  ui[1]: "mux_sel[1] - select active analog block (0-3)"
+  ui[2]: "comparator_clk - external clock for Block 1 (StrongARM comparator)"
+  ui[3]: "buf_bypass - 1: shared output buffer input = ua_in directly (buffer-only characterization, same buffer instance as normal path)"
   ui[4]: ""
   ui[5]: ""
   ui[6]: ""
   ui[7]: ""
 
-  # Outputs
-  uo[0]: ""
+  # Outputs — digitized status / comparator digital output
+  uo[0]: "comparator_out - digital output of Block 1 when selected"
   uo[1]: ""
   uo[2]: ""
   uo[3]: ""
@@ -44,7 +76,7 @@ pinout:
   uo[6]: ""
   uo[7]: ""
 
-  # Bidirectional pins
+  # Bidirectional — unused for now, all set as inputs (high-Z outputs)
   uio[0]: ""
   uio[1]: ""
   uio[2]: ""
@@ -54,13 +86,7 @@ pinout:
   uio[6]: ""
   uio[7]: ""
 
-  # Analog pins - make sure to also set "analog_pins" above, else the pins won't be connected
-  ua[0]: ""
-  ua[1]: ""
-  ua[2]: ""
-  ua[3]: ""
-  ua[4]: ""
-  ua[5]: ""
-
-# Do not change!
-yaml_version: 6
+  # Analog pins — shared bus, block selected by mux_sel[1:0]
+  ua[0]: "analog_in  - shared analog input/stimulus to the selected block, or to the buffer directly when buf_bypass=1"
+  ua[1]: "analog_out - shared output buffer's output, always (never a raw un-buffered block output)"
+  ua[2]: "analog_ref - shared second input/reference (comparator ref, bandgap sense)"
