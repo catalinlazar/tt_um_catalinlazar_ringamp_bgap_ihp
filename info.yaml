@@ -57,11 +57,11 @@ project:
 # ----------------------------------------------------------------------------
 pinout:
   # Inputs — used as analog-mux block-select and comparator clock
-  ui[0]: "mux_sel[0] - select active analog block (0-3)"
-  ui[1]: "mux_sel[1] - select active analog block (0-3)"
-  ui[2]: "comparator_clk - external clock for Block 1 (StrongARM comparator)"
-  ui[3]: "buf_bypass - 1: shared output buffer input = ua_in directly (buffer-only characterization, same buffer instance as normal path)"
-  ui[4]: ""
+  ui[0]: "mux_sel[0] - block select, see mapping: 00=HBT bandgap (default), 01=ring-amp, 10=SC bandgap, 11=HBT bandgap"
+  ui[1]: "mux_sel[1] - see ui[0]"
+  ui[2]: "comparator_clk - external clock for Block 1 (StrongARM comparator) and SC bandgap"
+  ui[3]: "buf_bypass - 1: shared output buffer's input = ua_in directly (buffer-only characterization, same buffer instance as normal path)"
+  ui[4]: "ua_raw_sel - 1: ua[1] = bare mux output, bypassing the buffer entirely (debug mode, same pin as normal buffered output - not a second pad)"
   ui[5]: ""
   ui[6]: ""
   ui[7]: ""
@@ -88,5 +88,5 @@ pinout:
 
   # Analog pins — shared bus, block selected by mux_sel[1:0]
   ua[0]: "analog_in  - shared analog input/stimulus to the selected block, or to the buffer directly when buf_bypass=1"
-  ua[1]: "analog_out - shared output buffer's output, always (never a raw un-buffered block output)"
+  ua[1]: "analog_out - buffer output (normal, ua_raw_sel=0) or bare mux output (debug, ua_raw_sel=1) - never both at once, same pad"
   ua[2]: "analog_ref - shared second input/reference (comparator ref, bandgap sense)"

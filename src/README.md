@@ -12,9 +12,10 @@
     TBD, source follower is the leading candidate). ONE instance, used both
     for the normal signal path and for buffer-only characterization via
     bypass — deliberately not duplicated, to avoid reintroducing mismatch
-  - `tt_um_catalinlazar_ringamp_bgap_ihp_beh.va` — top-level wrapper wiring
-    all four blocks + the shared buffer through the analog mux and bypass
-    control, matching the real pinout
+  - `tt_um_catalinlazar_ringamp_bgap_ihp_beh.va` — top-level wrapper: mux
+    (00/11=HBT bandgap default, 01=ring-amp, 10=SC bandgap - never
+    floating), shared buffer with buf_bypass characterization mode, and
+    ua_raw_sel mode-select on ua[1] (buffered vs bare mux output, same pad)
 
   These are functional stand-ins (ideal gain/threshold behavior), not
   transistor-accurate — refine or replace per-block as real topologies are
@@ -42,13 +43,14 @@ still needs OpenVAF set up):
   triggered sampling behavior - that needs the real Verilog-A/OSDI model
   or a transistor-level transient sim). Clean 0/1V digital swing, trip
   point at exactly -offset as expected.
-- `mux_buf_tb.cir` — steps sel[1:0] through all four codes with the shared
-  buffer inline, then switches to buf_bypass and confirms ua_in routes
-  straight through the SAME buffer instance (identical 0.98 gain applied
-  in both modes — confirms no accidental second buffer/mismatch source).
+- `mux_remap_tb.cir` — steps sel[1:0] through all four codes with the new
+  mapping (00/11=HBT bandgap default, 01=ring-amp, 10=SC bandgap) with the
+  shared buffer inline, then flips `ua_raw_sel` while still on sel=00 and
+  confirms `ua_out` jumps from the buffered value (0.470V) to the raw
+  mux_out value (0.480V) on the same pin — confirms the mode-select
+  mechanism works and never requires a second physical pad.
 
-All passed (after fixing the bandgap coefficients). See `sim_summary.png`
-and `mux_buf_tb.png` for plots.
+All passed. See `sim_summary.png` and `mux_remap_tb.png` for plots.
 
 `info.yaml`'s `source_files` list should be updated to include the real
 file paths as they're added (currently points at the behavioral/ files).

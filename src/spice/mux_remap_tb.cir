@@ -1,0 +1,33 @@
+* Mux remap + raw-mode test:
+*  sel=00 -> HBT bgap (default), 01 -> ringamp, 10 -> SC bgap, 11 -> HBT bgap
+*  ua_raw_sel: 0=buffered ua_out, 1=raw mux_out on same pin
+.param v_ringamp=0.30 v_hbtbg=0.48 v_scbg=0.55 vdd=1.0
+.param buf_gain=0.98
+
+* sel0,sel1 sequence: 00(0-10u) 01(10-20u) 10(20-30u) 11(30-40u) 00(40-50u)
+Vsel0 sel0 0 PWL(0 0  10u 0  10.001u 1  20u 1  20.001u 0  30u 0  30.001u 1  40u 1  40.001u 0)
+Vsel1 sel1 0 PWL(0 0  20u 0  20.001u 1  40u 1  40.001u 0)
+* raw_sel goes high at 45us while sel=00 (HBT bgap), to compare raw vs buffered on same block
+Vraw  rawsel 0 PWL(0 0  45u 0  45.001u 1  50u 1)
+Vbyp  byp  0 0
+
+Bringamp ringamp_out 0 V = {v_ringamp}
+Bhbtbg   hbtbg_out   0 V = {v_hbtbg}
+Bscbg    scbg_out    0 V = {v_scbg}
+
+Bmux mux_out 0 V = (v(sel1)<0.5 && v(sel0)>=0.5) ? v(ringamp_out) :
++ (v(sel1)>=0.5 && v(sel0)<0.5) ? v(scbg_out) : v(hbtbg_out)
+
+Bbufin buf_in 0 V = (v(byp)>0.5) ? v(ua_in) : v(mux_out)
+Bbufout buf_out 0 V = {buf_gain}*v(buf_in)
+Vain ua_in 0 DC 0
+
+Bua_out ua_out 0 V = (v(rawsel)>0.5) ? v(mux_out) : v(buf_out)
+
+.tran 0.1u 50u
+
+.control
+run
+wrdata mux_remap_tb.txt v(sel1) v(sel0) v(rawsel) v(mux_out) v(ua_out)
+.endc
+.end

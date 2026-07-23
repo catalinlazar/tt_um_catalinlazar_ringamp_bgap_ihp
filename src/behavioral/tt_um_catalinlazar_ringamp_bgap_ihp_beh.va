@@ -7,12 +7,29 @@
 // share ua_out through a 2-bit digitally controlled mux, followed by a
 // SINGLE shared output buffer instance.
 //
+// Block-select mapping (deliberately no floating/idle state - the shared
+// bus always has a real, well-defined block connected):
+//   sel[1:0] = 00 -> HBT bandgap   (DEFAULT at reset - most tolerant of an
+//                                    undefined/unknown external load: a
+//                                    simple resistor-set DC output)
+//   sel[1:0] = 01 -> Ring-amp OTA
+//   sel[1:0] = 10 -> SC bandgap
+//   sel[1:0] = 11 -> HBT bandgap   (redundant safe code, same reasoning)
+//
 // buf_bypass (ui[3]) forces the buffer's input to connect directly to
 // ua_in instead of the mux output, for buffer-only characterization -
 // deliberately the SAME buffer instance in both cases (not a duplicate
 // copy), so buffer non-idealities measured in bypass mode can be
 // de-embedded from the block measurements without introducing new
 // instance-to-instance mismatch.
+//
+// ua_raw_sel (ui[4]) selects what actually appears on the ua[1] pad:
+// 0 = buffer output (normal), 1 = bare mux output, bypassing the buffer
+// entirely. This is a MODE SELECT on the same pin, not a second physical
+// pad - a dedicated raw pin would permanently load the mux_out node with
+// pad/ESD parasitics (worst for the ring-amp) even when unused. Cost: you
+// can't view raw and buffered simultaneously on two scope channels, only
+// sequentially.
 //
 // Use this for early top-level verification (does the pin map make sense,
 // does the mux selection work, do block interactions look reasonable)
@@ -23,46 +40,48 @@
 `include "disciplines.vams"
 
 module tt_um_catalinlazar_ringamp_bgap_ihp_beh(
-    sel0, sel1,      // ui[0], ui[1] - mux block select (0=idle,1=ringamp,2=hbt bgap,3=sc bgap)
+    sel0, sel1,      // ui[0], ui[1] - mux block select, see mapping above
     comp_clk,        // ui[2] - comparator clock / SC bandgap clock
     buf_bypass,      // ui[3] - 1: buffer input = ua_in directly (buffer-only characterization)
+    ua_raw_sel,      // ui[4] - 1: ua[1] = bare mux output (bypass buffer entirely, debug mode)
     ua_in,           // ua[0] - shared analog input
-    ua_out,          // ua[1] - shared analog output (buffer output, always)
+    ua_out,          // ua[1] - shared analog output: buffer output (normal) or raw mux output (debug)
     ua_ref,          // ua[2] - shared reference/second input
     uo_comp,         // uo[0] - comparator digital output (direct, not muxed, not buffered)
     vdd, vss
 );
-    input sel0, sel1, comp_clk, buf_bypass, ua_in, ua_ref, vdd, vss;
+    input sel0, sel1, comp_clk, buf_bypass, ua_raw_sel, ua_in, ua_ref, vdd, vss;
     output ua_out, uo_comp;
-    electrical sel0, sel1, comp_clk, buf_bypass, ua_in, ua_out, ua_ref, uo_comp, vdd, vss;
+    electrical sel0, sel1, comp_clk, buf_bypass, ua_raw_sel, ua_in, ua_out, ua_ref, uo_comp, vdd, vss;
 
-    electrical ringamp_out, hbtbg_out, scbg_out, mux_out, buf_in;
+    electrical ringamp_out, hbtbg_out, scbg_out, mux_out, buf_in, buf_out;
 
-    parameter real vth_dig = 0.6; // digital logic threshold on sel0/sel1/buf_bypass (V)
+    parameter real vth_dig = 0.6; // digital logic threshold on sel0/sel1/buf_bypass/ua_raw_sel (V)
 
-    real s0, s1, sbyp, selcode;
+    real s0, s1, sbyp, sraw, selcode;
 
     comparator_beh   U_CMP(.clk(comp_clk), .inp(ua_in), .inn(ua_ref), .out(uo_comp), .vdd(vdd), .vss(vss));
     ringamp_ota_beh  U_RA (.inp(ua_in), .inn(ua_ref), .out(ringamp_out), .vdd(vdd), .vss(vss));
     hbt_bandgap_beh  U_HBT(.vref(hbtbg_out), .vdd(vdd), .vss(vss));
     sc_bandgap_beh   U_SC (.clk(comp_clk), .vref(scbg_out), .vdd(vdd), .vss(vss));
-    buffer_beh       U_BUF(.in(buf_in), .out(ua_out), .vdd(vdd), .vss(vss));
+    buffer_beh       U_BUF(.in(buf_in), .out(buf_out), .vdd(vdd), .vss(vss));
 
     analog begin
         s0   = (V(sel0) > vth_dig) ? 1 : 0;
         s1   = (V(sel1) > vth_dig) ? 1 : 0;
         sbyp = (V(buf_bypass) > vth_dig) ? 1 : 0;
+        sraw = (V(ua_raw_sel) > vth_dig) ? 1 : 0;
         selcode = s1 * 2 + s0;
 
         if (selcode == 1)
             V(mux_out) <+ V(ringamp_out);
         else if (selcode == 2)
-            V(mux_out) <+ V(hbtbg_out);
-        else if (selcode == 3)
             V(mux_out) <+ V(scbg_out);
         else
-            V(mux_out) <+ V(vss); // selcode == 0: idle
+            V(mux_out) <+ V(hbtbg_out); // selcode == 0 or 3: HBT bandgap (safe default)
 
         V(buf_in) <+ (sbyp > 0) ? V(ua_in) : V(mux_out);
+
+        V(ua_out) <+ (sraw > 0) ? V(mux_out) : V(buf_out);
     end
 endmodule
