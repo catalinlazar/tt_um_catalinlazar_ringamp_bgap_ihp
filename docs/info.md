@@ -5,6 +5,8 @@ PROJECT_NAME token: tt_um_catalinlazar_ringamp_bgap_ihp
 
 ## How it works
 
+![Block diagram](block_diagram.png)
+
 This project (`tt_um_catalinlazar_ringamp_bgap_ihp`) is a small library of four
 SG13G2 analog primitives sharing one 1x2 analog tile:
 
