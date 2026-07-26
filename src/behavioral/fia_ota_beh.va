@@ -1,0 +1,45 @@
+// Floating Inverter Amplifier (FIA) - single CMOS inverter stage used as
+// the gain element, with its "rails" being floating nodes pre-charged via
+// capacitors during a reset/auto-zero phase, landing the inverter's bias
+// point at peak gain (near the switching threshold) regardless of input
+// common-mode. Gives class-AB-like push-pull efficiency without the
+// ring-amp's deliberate multi-stage dead-zone/ringing tuning, and without
+// a classical OTA's static tail current.
+//
+// NOTE ON SOURCING: this is a real, distinct topology, but the exact
+// original JSSC/ISSCC citation was not verified with confidence - search
+// IEEE Xplore for "floating inverter amplifier" directly rather than
+// trusting a specific author/year from this file's history.
+//
+// NOTE ON THIS MODEL: at the behavioral level this reduces to the same
+// single-pole gain approximation as ringamp_ota_beh.va - the real
+// distinguishing behavior (floating-rail charge droop, reset-phase
+// settling, common-mode self-biasing) only shows up at transistor level.
+// Kept as a SEPARATE file/module (not literally aliased to the ring-amp
+// model) so parameters can diverge once real characterization exists.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module fia_ota_beh(inp, inn, out, vdd, vss);
+    input inp, inn, vdd, vss;
+    output out;
+    electrical inp, inn, out, vdd, vss;
+
+    parameter real av0 = 800;       // open-loop DC gain (V/V) - placeholder
+    parameter real gbw = 40M;       // gain-bandwidth product (Hz) - placeholder
+
+    real vdiff, vmid, vout_ideal;
+
+    analog begin
+        vdiff      = V(inp) - V(inn);
+        vmid       = (V(vdd) + V(vss)) / 2;
+        vout_ideal = vmid + av0 * vdiff;
+
+        if (vout_ideal > V(vdd))
+            vout_ideal = V(vdd);
+        else if (vout_ideal < V(vss))
+            vout_ideal = V(vss);
+
+        V(out) <+ laplace_np(vout_ideal, {1}, {1, 1 / (2 * `M_PI * gbw)});
+    end
+endmodule

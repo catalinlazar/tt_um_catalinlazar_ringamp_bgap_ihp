@@ -15,17 +15,26 @@ project:
   author:       "Catalin Lazar"
   discord:      ""             # optional, add your Discord username
   description: >
-    A library of four reusable SG13G2 analog primitives, all targeting a
+    A library of seven reusable SG13G2 analog primitives, all targeting a
     ~1.0V supply, on a single 1x2 analog tile: a StrongARM/double-tail
-    dynamic comparator, a ring-amplifier (FEA-style) OTA, a SiGe HBT bandgap
-    reference using a Malcovati-style current-summed (not series-stacked)
-    architecture to reach 1.0V despite the ~1.2V physical bandgap voltage
-    constant, and a switched-capacitor ("end-of-life" style) bandgap built
-    from the first two blocks. Blocks are time-multiplexed onto the shared
-    analog pins via a digitally controlled analog mux. Believed to be the
-    first HBT-based bandgap reference on any open-PDK Tiny Tapeout shuttle
-    (existing TT bandgaps are Sky130/CMOS-only). Submitted as Chipalooza
-    Round 1 IP, and as Phase 1 toward a future cyclic-ADC proposal.
+    dynamic comparator; three alternative low-voltage residue-amplifier
+    architectures - a ring-amplifier (FEA-style) OTA, a Floating Inverter
+    Amplifier (FIA), and a Zero-Crossing-Based discharge amplifier (ZCBC,
+    reusing the comparator as its zero-crossing detector); a classic
+    folded-cascode/telescopic OTA as a proven backup for the eventual
+    cyclic-ADC residue amplifier; a SiGe HBT bandgap using a Malcovati-
+    style current-summed (not series-stacked) architecture to reach 1.0V
+    despite the ~1.2V physical bandgap voltage constant; and a switched-
+    capacitor ("end-of-life" style) bandgap built from the ring-amp and
+    comparator. All mux-arbitrated blocks (everything except the
+    comparator, which bypasses the mux) share ua_out through a 3-bit
+    digitally controlled mux and a single shared output buffer, with a
+    mode-select for raw/unbuffered debug access. Believed to be the first
+    HBT-based bandgap reference on any open-PDK Tiny Tapeout shuttle.
+    Submitted as Chipalooza Round 1 IP, and as Phase 1 toward a future
+    cyclic-ADC proposal - this round doubles as a bake-off between three
+    modern residue-amplifier candidates plus a conventional fallback for
+    that eventual ADC.
   language:     "Analog"       # custom full-custom analog, not synthesized HDL
   clock_hz:     0               # no fixed digital clock; comparator clock is
                                  # provided externally via a digital pin (see pinout)
@@ -45,6 +54,9 @@ project:
     - "src/behavioral/ringamp_ota_beh.va"
     - "src/behavioral/hbt_bandgap_beh.va"
     - "src/behavioral/sc_bandgap_beh.va"
+    - "src/behavioral/zcbc_amp_beh.va"
+    - "src/behavioral/fia_ota_beh.va"
+    - "src/behavioral/classic_ota_beh.va"
     - "src/behavioral/buffer_beh.va"
     - "src/behavioral/tt_um_catalinlazar_ringamp_bgap_ihp_beh.va"
     # add xschem/ schematics and spice/ testbenches here as they're created;
@@ -57,12 +69,12 @@ project:
 # ----------------------------------------------------------------------------
 pinout:
   # Inputs — used as analog-mux block-select and comparator clock
-  ui[0]: "mux_sel[0] - block select, see mapping: 00=HBT bandgap (default), 01=ring-amp, 10=SC bandgap, 11=HBT bandgap"
-  ui[1]: "mux_sel[1] - see ui[0]"
-  ui[2]: "comparator_clk - external clock for Block 1 (StrongARM comparator) and SC bandgap"
+  ui[0]: "mux_sel[0] - block select bit 0, see mapping table in docs/info.md"
+  ui[1]: "mux_sel[1] - block select bit 1"
+  ui[2]: "comparator_clk - clock for comparator, ZCBC amp, and SC bandgap"
   ui[3]: "buf_bypass - 1: shared output buffer's input = ua_in directly (buffer-only characterization, same buffer instance as normal path)"
   ui[4]: "ua_raw_sel - 1: ua[1] = bare mux output, bypassing the buffer entirely (debug mode, same pin as normal buffered output - not a second pad)"
-  ui[5]: ""
+  ui[5]: "mux_sel[2] - block select bit 2 (sel[2:0] = {ui[5], ui[1], ui[0]})"
   ui[6]: ""
   ui[7]: ""
 

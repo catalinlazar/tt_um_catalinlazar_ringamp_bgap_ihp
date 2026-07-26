@@ -1,0 +1,29 @@
+* 3-bit mux mapping test: verify all 8 codes route to the correct block
+.param v_ringamp=0.30 v_hbtbg=0.48 v_scbg=0.55 v_zcbc=0.65 v_fia=0.35 v_classic=0.42
+
+* sel0,sel1,sel2 count 0..7 over 80us (10us per code)
+Vsel0 sel0 0 PWL(0 0  10u 0 10.001u 1 20u 1 20.001u 0 30u 0 30.001u 1 40u 1 40.001u 0
++ 50u 0 50.001u 1 60u 1 60.001u 0 70u 0 70.001u 1 80u 1)
+Vsel1 sel1 0 PWL(0 0  20u 0 20.001u 1 40u 1 40.001u 0 60u 0 60.001u 1 80u 1)
+Vsel2 sel2 0 PWL(0 0  40u 0 40.001u 1 80u 1)
+
+Bringamp ringamp_out 0 V = {v_ringamp}
+Bhbtbg   hbtbg_out   0 V = {v_hbtbg}
+Bscbg    scbg_out    0 V = {v_scbg}
+Bzcbc    zcbc_out    0 V = {v_zcbc}
+Bfia     fia_out     0 V = {v_fia}
+Bclassic classic_out 0 V = {v_classic}
+
+Bmux mux_out 0 V = (v(sel2)<0.5 && v(sel1)<0.5 && v(sel0)>=0.5) ? v(ringamp_out) :
++ (v(sel2)<0.5 && v(sel1)>=0.5 && v(sel0)<0.5) ? v(scbg_out) :
++ (v(sel2)<0.5 && v(sel1)>=0.5 && v(sel0)>=0.5) ? v(zcbc_out) :
++ (v(sel2)>=0.5 && v(sel1)<0.5 && v(sel0)<0.5) ? v(fia_out) :
++ (v(sel2)>=0.5 && v(sel1)<0.5 && v(sel0)>=0.5) ? v(classic_out) : v(hbtbg_out)
+
+.tran 0.1u 80u
+
+.control
+run
+wrdata mux_8way_tb.txt v(sel2) v(sel1) v(sel0) v(mux_out)
+.endc
+.end

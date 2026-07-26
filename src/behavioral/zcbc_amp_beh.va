@@ -1,0 +1,50 @@
+// Zero-Crossing-Based Circuit (ZCBC) amplifier - comparator-based discharge
+// amplifier. Sepke, Fiorenza, Sodini, Holloway, Lee, "Comparator-Based
+// Switched-Capacitor Circuits for Scaled CMOS Technologies," IEEE JSSC,
+// Dec 2006.
+//
+// Mechanism (not literally modeled here, see note below): on the clock
+// edge, the output node is discharged through a controlled current source;
+// a comparator watches for the output crossing the target (zero-crossing)
+// value and shuts the current off at that instant. No continuous-time
+// static bias current - power is spent only during the discharge
+// transient. Reuses this tile's own comparator (Block 0) as the
+// zero-crossing detector in the real transistor-level implementation.
+//
+// Known non-ideality modeled here: finite comparator delay means the
+// discharge current keeps flowing briefly after the ideal crossing point,
+// causing a systematic overshoot/gain error = idis/cout * tdelay_cmp.
+// This is the dominant, well-documented ZCBC error term - NOT modeled:
+// the actual RC discharge transient shape, two-phase coarse/fine
+// discharge (the standard mitigation for the overshoot term above).
+`include "constants.vams"
+`include "disciplines.vams"
+
+module zcbc_amp_beh(inp, inn, clk, out, vdd, vss);
+    input inp, inn, clk, vdd, vss;
+    output out;
+    electrical inp, inn, clk, out, vdd, vss;
+
+    parameter real gain_ideal  = 8;     // target closed-loop gain (V/V)
+    parameter real idis        = 5u;    // discharge current (A)
+    parameter real cout        = 200f;  // output cap (F)
+    parameter real tdelay_cmp  = 100p;  // comparator delay -> overshoot term (s)
+    parameter real vth_clk     = 0.6;   // clock logic threshold (V)
+    parameter real tsettle     = 500p;  // behavioral settle time for this model (s)
+
+    real vtarget, overshoot, vout_ideal;
+
+    analog begin
+        @(cross(V(clk) - vth_clk, +1)) begin
+            vtarget   = gain_ideal * (V(inp) - V(inn)) + (V(vdd) + V(vss)) / 2;
+            overshoot = idis / cout * tdelay_cmp; // systematic gain error, not random
+            vout_ideal = vtarget + overshoot;
+
+            if (vout_ideal > V(vdd))
+                vout_ideal = V(vdd);
+            else if (vout_ideal < V(vss))
+                vout_ideal = V(vss);
+        end
+        V(out) <+ transition(vout_ideal, 0, tsettle);
+    end
+endmodule

@@ -1,0 +1,43 @@
+// Classic (textbook) OTA/op-amp - telescopic or folded-cascode as needed
+// for 1.0V headroom, single-stage or two-stage as gain/output-swing
+// requires. Explicitly a BACKUP/insurance block for the eventual cyclic
+// ADC's residue amplifier, in case the ring-amp (Block 1) underperforms
+// in silicon - deliberately the most conventional, best-understood
+// topology on this tile, not a novelty entry.
+//
+// At 1.0V, a folded-cascode is tight (roughly one VDSsat per cascode
+// device plus the input pair) but well-documented; check whether a
+// simpler telescopic or two-stage design meets gain/swing requirements
+// before committing to cascoding at all.
+//
+// NOTE ON THIS MODEL: same single-pole behavioral approximation as the
+// ring-amp/FIA models at this stage - real differentiation (PSRR, output
+// swing, phase margin/compensation) only shows up at transistor level.
+`include "constants.vams"
+`include "disciplines.vams"
+
+module classic_ota_beh(inp, inn, out, vdd, vss);
+    input inp, inn, vdd, vss;
+    output out;
+    electrical inp, inn, out, vdd, vss;
+
+    parameter real av0 = 2000;      // open-loop DC gain (V/V) - placeholder,
+                                      // classical topologies typically hit
+                                      // higher DC gain than ring-amp/FIA
+    parameter real gbw = 20M;       // gain-bandwidth product (Hz) - placeholder
+
+    real vdiff, vmid, vout_ideal;
+
+    analog begin
+        vdiff      = V(inp) - V(inn);
+        vmid       = (V(vdd) + V(vss)) / 2;
+        vout_ideal = vmid + av0 * vdiff;
+
+        if (vout_ideal > V(vdd))
+            vout_ideal = V(vdd);
+        else if (vout_ideal < V(vss))
+            vout_ideal = V(vss);
+
+        V(out) <+ laplace_np(vout_ideal, {1}, {1, 1 / (2 * `M_PI * gbw)});
+    end
+endmodule
