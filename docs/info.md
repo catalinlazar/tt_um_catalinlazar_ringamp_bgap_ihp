@@ -12,7 +12,7 @@ seven SG13G2 analog primitives sharing one 1x2 analog tile:
 
 1. **Block 0 — Dynamic latched comparator** (StrongARM / double-tail latch)
 2. **Block 1 — Ring-amplifier (FEA-style) OTA**
-3. **Block 2 — SiGe HBT bandgap reference** (Brokaw/Banba-style, current-summed)
+3. **Block 2 — CMOS 1.2V-class voltage reference** (Banba-style, current-summed; NPN unavailable / PNP uncharacterized on this CMOS-only PDK, so this is subthreshold-CMOS, not a bipolar bandgap)
 4. **Block 3 — Switched-capacitor bandgap** ("end-of-life" variant, built
    from Blocks 0 and 1)
 5. **Block 4 — ZCBC amp** (Zero-Crossing-Based discharge amplifier, reuses
@@ -28,24 +28,24 @@ ui[0]}`) and a single shared output buffer. Only one is connected to
 `ua[0..2]` at a time.
 
 **Block-select mapping** (deliberately no floating/idle state — every
-unused code safely defaults to the HBT bandgap):
+unused code safely defaults to the CMOS voltage reference):
 
 | sel[2:0] | Block |
 |---|---|
-| 000 (default at reset) | HBT bandgap |
+| 000 (default at reset) | CMOS voltage reference |
 | 001 | Ring-amp OTA |
 | 010 | SC bandgap |
 | 011 | ZCBC amp |
 | 100 | FIA |
 | 101 | Classic OTA |
-| 110 | HBT bandgap (spare, safe default) |
-| 111 | HBT bandgap (spare, safe default) |
+| 110 | CMOS voltage reference (spare, safe default) |
+| 111 | CMOS voltage reference (spare, safe default) |
 
-The default (000) is deliberately the HBT bandgap: a simple resistor-set
-DC output that stays well-behaved under an unknown/undefined external
-load, unlike the ring-amp/FIA/ZCBC (all tuned around a specific expected
-load or timing) or the SC bandgap (charge-domain, actively corrupted by
-unexpected external capacitance).
+The default (000) is deliberately the CMOS voltage reference: a simple
+resistor-set DC output that stays well-behaved under an unknown/undefined
+external load, unlike the ring-amp/FIA/ZCBC (all tuned around a specific
+expected load or timing) or the SC bandgap (charge-domain, actively
+corrupted by unexpected external capacitance).
 
 **Why three residue-amplifier candidates plus a classic backup:** this
 round doubles as an informal bake-off for the eventual cyclic-ADC residue
@@ -90,17 +90,25 @@ discharge-based structures with no static headroom fight) but is the
 interesting constraint for Block 2: a naive BJT bandgap generates
 VBE + K*ΔVBE in series, landing near the physical silicon bandgap voltage
 (~1.2V) which doesn't shrink with process scaling, so it would need
-~1.3-1.5V of headroom. Block 2 instead sums PTAT/CTAT as *currents* into
-a single output resistor (Malcovati-style), so the output level is a
-resistor ratio rather than a forced series stack, keeping every internal
-node within 1.0V-friendly headroom. Block 3 inherits the same benefit
-naturally, since its output level is set by capacitor ratio. Block 6
-(classic OTA) is the one place 1.0V is a genuine design challenge if
-folded-cascode ends up being necessary rather than a simpler topology.
+~1.3-1.5V of headroom - moot here anyway, since this PDK (ihp-sg13cmos5l)
+has no usable NPN and an uncharacterized PNP, so a bipolar bandgap isn't
+viable regardless of voltage. Block 2 instead uses subthreshold-biased
+CMOS devices and sums PTAT/CTAT as *currents* into a single output
+resistor (Banba-style: H. Banba et al., IEEE JSSC, May 1999), so the
+output level is a resistor ratio rather than a forced series stack,
+keeping every internal node within 1.0V-friendly headroom. Block 3
+inherits the same benefit naturally, since its output level is set by
+capacitor ratio. Block 6 (classic OTA) is the one place 1.0V is a genuine
+design challenge if folded-cascode ends up being necessary rather than a
+simpler topology.
 
-To our knowledge Block 2 is the first HBT-based bandgap reference on any
-open-PDK Tiny Tapeout shuttle; existing TT bandgap projects (e.g. TT07/TT08)
-are Sky130-based and CMOS-only, since Sky130 lacks dedicated BJTs.
+**Correction history:** Block 2 was originally designed as an HBT-based
+bandgap, under the (incorrect, for this challenge round) assumption that
+the target PDK was SG13G2 (full BiCMOS). The Chipalooza signup form
+clarified that this round targets ihp-sg13cmos5l specifically, a
+CMOS-only derivative - NPN unavailable, PNP uncharacterized. Block 2 was
+redesigned accordingly; the "first HBT-based bandgap" novelty claim from
+an earlier draft no longer applies and has been removed.
 
 ## How to test
 
@@ -109,7 +117,7 @@ _(To be completed once testbenches exist. Outline per block:)_
   on `ui[2]`, read digital result on `uo[0]`. Not affected by `sel[2:0]`.
 - Block 1 (ring-amp OTA): set `sel[2:0]=001`, apply input on `ua[0]`, read
   amplified output on `ua[1]` (buffered by default).
-- Block 2 (HBT bandgap): `sel[2:0]=000` (also the power-on default), `110`,
+- Block 2 (CMOS voltage reference): `sel[2:0]=000` (also the power-on default), `110`,
   or `111`, read DC reference voltage on `ua[1]`, no input needed.
 - Block 3 (SC bandgap): set `sel[2:0]=010`, read DC reference voltage on
   `ua[1]`, requires `ui[2]` clock for the switching phases.

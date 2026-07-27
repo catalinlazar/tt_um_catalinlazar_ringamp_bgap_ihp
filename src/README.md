@@ -4,9 +4,12 @@
   verification before transistor-level schematics exist:
   - `comparator_beh.va` — Block 0, StrongARM/double-tail comparator
   - `ringamp_ota_beh.va` — Block 1, ring-amp/FEA-style OTA
-  - `hbt_bandgap_beh.va` — Block 2, SiGe HBT bandgap: current-summed
-    (Malcovati-style) PTAT+CTAT model, parameterized (N, R1-R3, k1/k2),
-    targets ~1.0V by construction rather than a series VBE stack
+  - `cmos_vref_beh.va` — Block 2, CMOS 1.2V-class voltage reference:
+    current-summed (Banba-style) PTAT+CTAT model using subthreshold-biased
+    CMOS devices, parameterized (N, n_slope, R1-R3, k1/k2), targets ~1.0V
+    by construction. CORRECTED from an earlier HBT-based version - this
+    round's actual target (ihp-sg13cmos5l) has no usable NPN and an
+    uncharacterized PNP, so a bipolar bandgap wasn't viable
   - `sc_bandgap_beh.va` — Block 3, switched-capacitor bandgap
   - `zcbc_amp_beh.va` — Block 4, Zero-Crossing-Based discharge amplifier
     (Sepke/Fiorenza/Sodini/Holloway/Lee, IEEE JSSC Dec 2006). Models the
@@ -25,10 +28,10 @@
     for the normal signal path and for buffer-only characterization via
     bypass — deliberately not duplicated, to avoid reintroducing mismatch
   - `tt_um_catalinlazar_ringamp_bgap_ihp_beh.va` — top-level wrapper: 3-bit
-    mux (000/110/111=HBT bandgap default, 001=ring-amp, 010=SC bandgap,
-    011=ZCBC, 100=FIA, 101=classic OTA - never floating), shared buffer
-    with buf_bypass characterization mode, and ua_raw_sel mode-select on
-    ua[1] (buffered vs bare mux output, same pad)
+    mux (000/110/111=CMOS voltage reference default, 001=ring-amp,
+    010=SC bandgap, 011=ZCBC, 100=FIA, 101=classic OTA - never floating),
+    shared buffer with buf_bypass characterization mode, and ua_raw_sel
+    mode-select on ua[1] (buffered vs bare mux output, same pad)
 
 Still to add:
 - `xschem/` — transistor-level schematics per block, plus the shared
@@ -40,10 +43,10 @@ ngspice testbenches mirroring the behavioral models as native B-source
 expressions (not yet the compiled Verilog-A/OSDI path - that still needs
 OpenVAF set up):
 
-- `bandgap_tc.cir` — temperature sweep, 0-80C. First run used illustrative
-  (wrong) coefficients and showed ~33mV drift; solved analytically for the
-  correct k1 (3.3484) and re-ran: <1uV drift in this idealized linear-Vbe(T)
-  model.
+- `cmos_vref_tc.cir` — temperature sweep, 0-80C, for the corrected CMOS
+  subthreshold reference (with the n_slope=1.4 factor accounted for in
+  the k1 solve: k1=2.3917). <1uV drift in this idealized linear model.
+  Superseded the earlier HBT-based `bandgap_tc.cir` (removed).
 - `ringamp_ac.cir` — AC gain/bandwidth. Matches spec exactly: 60dB DC gain,
   pole at 50kHz, unity-gain at 50MHz (=GBW parameter).
 - `comparator_dc.cir` — static decision transfer curve. Clean 0/1V digital
@@ -51,7 +54,7 @@ OpenVAF set up):
 - `mux_remap_tb.cir` — original 4-code (2-bit) mapping + raw-mode test,
   superseded by `mux_8way_tb.cir` below but kept for reference.
 - `mux_8way_tb.cir` — full 3-bit, 8-code mapping test. Confirms all 8
-  codes route to the correct block (HBT bandgap at 000/110/111, ring-amp
+  codes route to the correct block (CMOS voltage ref at 000/110/111, ring-amp
   at 001, SC bandgap at 010, ZCBC at 011, FIA at 100, classic OTA at 101).
 
 All passed. See `sim_summary.png`, `mux_remap_tb.png` for earlier plots.

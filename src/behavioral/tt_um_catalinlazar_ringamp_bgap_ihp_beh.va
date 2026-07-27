@@ -8,22 +8,28 @@
 //
 // Block-select mapping (sel[2:0] = {sel2, sel1, sel0}; deliberately no
 // floating/idle state - the shared bus always has a real, well-defined
-// block connected, and every unused code safely defaults to the HBT
-// bandgap):
-//   000 -> HBT bandgap        (DEFAULT at reset - most tolerant of an
+// block connected, and every unused code safely defaults to the CMOS
+// voltage reference):
+//   000 -> CMOS voltage reference (DEFAULT at reset - most tolerant of an
 //                               undefined/unknown external load)
 //   001 -> Ring-amp OTA
 //   010 -> SC bandgap
 //   011 -> ZCBC amp           (comparator-based discharge amplifier,
-//                               reuses Block 0 as its zero-crossing
-//                               detector in the real transistor-level
-//                               implementation)
+//                               reuses Block 0's design as its own
+//                               zero-crossing-detector instance in the
+//                               real transistor-level implementation)
 //   100 -> FIA (Floating Inverter Amplifier)
 //   101 -> Classic OTA        (folded-cascode/telescopic backup for the
 //                               eventual cyclic ADC, in case the ring-amp
 //                               underperforms in silicon)
-//   110 -> HBT bandgap        (spare, safe default)
-//   111 -> HBT bandgap        (spare, safe default)
+//   110 -> CMOS voltage reference (spare, safe default)
+//   111 -> CMOS voltage reference (spare, safe default)
+//
+// NOTE: Block 2 was originally an HBT-based bandgap, assuming SG13G2
+// (full BiCMOS). The actual target for this Chipalooza round is
+// ihp-sg13cmos5l (CMOS-only, NPN unavailable, PNP uncharacterized per the
+// challenge's own signup form) - Block 2 is now a subthreshold-CMOS
+// current-summed reference (Banba-style) instead. See cmos_vref_beh.va.
 //
 // buf_bypass (ui[3]) forces the buffer's input to connect directly to
 // ua_in instead of the mux output, for buffer-only characterization -
@@ -61,7 +67,7 @@ module tt_um_catalinlazar_ringamp_bgap_ihp_beh(
     output ua_out, uo_comp;
     electrical sel0, sel1, sel2, comp_clk, buf_bypass, ua_raw_sel, ua_in, ua_out, ua_ref, uo_comp, vdd, vss;
 
-    electrical ringamp_out, hbtbg_out, scbg_out, zcbc_out, fia_out, classic_out;
+    electrical ringamp_out, cmosvref_out, scbg_out, zcbc_out, fia_out, classic_out;
     electrical mux_out, buf_in, buf_out;
 
     parameter real vth_dig = 0.6; // digital logic threshold on select/mode pins (V)
@@ -70,7 +76,7 @@ module tt_um_catalinlazar_ringamp_bgap_ihp_beh(
 
     comparator_beh   U_CMP (.clk(comp_clk), .inp(ua_in), .inn(ua_ref), .out(uo_comp), .vdd(vdd), .vss(vss));
     ringamp_ota_beh  U_RA  (.inp(ua_in), .inn(ua_ref), .out(ringamp_out), .vdd(vdd), .vss(vss));
-    hbt_bandgap_beh  U_HBT (.vref(hbtbg_out), .vdd(vdd), .vss(vss));
+    cmos_vref_beh    U_VREF(.vref(cmosvref_out), .vdd(vdd), .vss(vss));
     sc_bandgap_beh   U_SC  (.clk(comp_clk), .vref(scbg_out), .vdd(vdd), .vss(vss));
     zcbc_amp_beh     U_ZCBC(.inp(ua_in), .inn(ua_ref), .clk(comp_clk), .out(zcbc_out), .vdd(vdd), .vss(vss));
     fia_ota_beh      U_FIA (.inp(ua_in), .inn(ua_ref), .out(fia_out), .vdd(vdd), .vss(vss));
@@ -96,7 +102,7 @@ module tt_um_catalinlazar_ringamp_bgap_ihp_beh(
         else if (selcode == 5)
             V(mux_out) <+ V(classic_out);
         else
-            V(mux_out) <+ V(hbtbg_out); // selcode == 0, 6, 7: HBT bandgap (safe default)
+            V(mux_out) <+ V(cmosvref_out); // selcode == 0, 6, 7: CMOS voltage reference (safe default)
 
         V(buf_in) <+ (sbyp > 0) ? V(ua_in) : V(mux_out);
 

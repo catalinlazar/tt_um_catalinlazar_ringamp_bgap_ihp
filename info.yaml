@@ -15,26 +15,24 @@ project:
   author:       "Catalin Lazar"
   discord:      ""             # optional, add your Discord username
   description: >
-    A library of seven reusable SG13G2 analog primitives, all targeting a
-    ~1.0V supply, on a single 1x2 analog tile: a StrongARM/double-tail
-    dynamic comparator; three alternative low-voltage residue-amplifier
-    architectures - a ring-amplifier (FEA-style) OTA, a Floating Inverter
-    Amplifier (FIA), and a Zero-Crossing-Based discharge amplifier (ZCBC,
-    reusing the comparator as its zero-crossing detector); a classic
-    folded-cascode/telescopic OTA as a proven backup for the eventual
-    cyclic-ADC residue amplifier; a SiGe HBT bandgap using a Malcovati-
-    style current-summed (not series-stacked) architecture to reach 1.0V
-    despite the ~1.2V physical bandgap voltage constant; and a switched-
-    capacitor ("end-of-life" style) bandgap built from the ring-amp and
-    comparator. All mux-arbitrated blocks (everything except the
-    comparator, which bypasses the mux) share ua_out through a 3-bit
-    digitally controlled mux and a single shared output buffer, with a
-    mode-select for raw/unbuffered debug access. Believed to be the first
-    HBT-based bandgap reference on any open-PDK Tiny Tapeout shuttle.
-    Submitted as Chipalooza Round 1 IP, and as Phase 1 toward a future
-    cyclic-ADC proposal - this round doubles as a bake-off between three
-    modern residue-amplifier candidates plus a conventional fallback for
-    that eventual ADC.
+    A library of seven reusable ihp-sg13cmos5l analog primitives, all
+    targeting a ~1.0V supply, on a single 1x2 analog tile: a StrongARM/
+    double-tail dynamic comparator; three alternative low-voltage residue-
+    amplifier architectures - a ring-amplifier (FEA-style) OTA, a Floating
+    Inverter Amplifier (FIA), and a Zero-Crossing-Based discharge amplifier
+    (ZCBC); a classic folded-cascode/telescopic OTA as a proven backup for
+    the eventual cyclic-ADC residue amplifier; a CMOS 1.2V-class voltage
+    reference using a Banba-style current-summed (not series-stacked)
+    architecture to reach ~1.0V (NPN unavailable / PNP uncharacterized on
+    this CMOS-only PDK variant, so this is subthreshold-CMOS, not a
+    bipolar bandgap); and a switched-capacitor ("end-of-life" style)
+    bandgap. All mux-arbitrated blocks (everything except the comparator,
+    which bypasses the mux) share ua_out through a 3-bit digitally
+    controlled mux and a single shared output buffer, with a mode-select
+    for raw/unbuffered debug access. Submitted as Chipalooza Round 1 IP,
+    and as Phase 1 toward a future cyclic-ADC proposal - this round
+    doubles as a bake-off between three modern residue-amplifier
+    candidates plus a conventional fallback for that eventual ADC.
   language:     "Analog"       # custom full-custom analog, not synthesized HDL
   clock_hz:     0               # no fixed digital clock; comparator clock is
                                  # provided externally via a digital pin (see pinout)
@@ -52,7 +50,7 @@ project:
   source_files:
     - "src/behavioral/comparator_beh.va"
     - "src/behavioral/ringamp_ota_beh.va"
-    - "src/behavioral/hbt_bandgap_beh.va"
+    - "src/behavioral/cmos_vref_beh.va"
     - "src/behavioral/sc_bandgap_beh.va"
     - "src/behavioral/zcbc_amp_beh.va"
     - "src/behavioral/fia_ota_beh.va"

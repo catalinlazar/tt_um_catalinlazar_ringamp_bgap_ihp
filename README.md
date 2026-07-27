@@ -10,13 +10,28 @@
 > repo, `info.yaml`, and final GDS/LEF.
 
 Submission for the [Chipalooza Challenge](https://sedemos.blogspot.com/2026/07/open-circuit-design-chipalooza-challenge.html),
-targeting the IHP SG13G2 (130nm BiCMOS) PDK via [Tiny Tapeout](https://tinytapeout.com).
+targeting the IHP SG13CMOS5L (130nm CMOS-only) PDK via [Tiny Tapeout](https://tinytapeout.com)
+(**vehicle TBD** - see open question below).
 
-Four SG13G2 analog primitives on one 1x2 analog tile:
+Seven ihp-sg13cmos5l analog primitives on one 1x2 analog tile:
 - Dynamic latched comparator (StrongARM/double-tail)
 - Ring-amplifier (FEA-style) OTA
-- SiGe HBT bandgap reference
+- CMOS 1.2V-class voltage reference (Banba-style; corrected from an earlier
+  HBT-based design - this PDK has no usable NPN and an uncharacterized PNP)
 - Switched-capacitor ("end-of-life") bandgap
+- ZCBC (Zero-Crossing-Based discharge amplifier)
+- FIA (Floating Inverter Amplifier)
+- Classic OTA/folded-cascode (backup for the eventual cyclic ADC)
+
+**Open question, not yet resolved:** all of the above assumes Tiny
+Tapeout's standard analog-tile track (1x2 tiles, `ua[0:5]` pins) works for
+`ihp-sg13cmos5l` specifically. Everything confirmed about that pin/tile
+framework so far was for `ihp-sg13g2` shuttles. There's a `TTIHP0p4` test
+shuttle tied to `ihp-sg13cmos5l`, but it looks digital-only (a VHDL audio
+synth project, no evidence of analog-tile support). `ihp-sg13cmos5l`
+tapeouts also happen via completely separate programs (e.g. HeiChips'
+eFPGA-fabric flow) that don't use TT's tile/pin conventions at all. This
+needs to be confirmed before the tile/pin framing below is trusted.
 
 See [`docs/info.md`](docs/info.md) for the full datasheet (how it works, pinout, how to test).
 
