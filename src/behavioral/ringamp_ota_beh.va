@@ -1,4 +1,4 @@
-// Block 1 - Ring-amplifier / FEA-style OTA
+// Block 1 - Ring-amplifier OTA
 // Behavioral stand-in: single-pole gain block with output clipping at the
 // rails. Does NOT model the ring-amp's actual open-loop ringing/settling
 // behavior - refine once the real topology is chosen and simulated.

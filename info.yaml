@@ -18,7 +18,7 @@ project:
     A library of seven reusable ihp-sg13cmos5l analog primitives, all
     targeting a ~1.0V supply, on a single 1x2 analog tile: a StrongARM/
     double-tail dynamic comparator; three alternative low-voltage residue-
-    amplifier architectures - a ring-amplifier (FEA-style) OTA, a Floating
+    amplifier architectures - a ring-amplifier OTA, a Floating
     Inverter Amplifier (FIA), and a Zero-Crossing-Based discharge amplifier
     (ZCBC); a classic folded-cascode/telescopic OTA as a proven backup for
     the eventual cyclic-ADC residue amplifier; a CMOS 1.2V-class voltage

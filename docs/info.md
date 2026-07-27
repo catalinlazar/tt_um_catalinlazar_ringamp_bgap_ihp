@@ -11,7 +11,7 @@ This project (`tt_um_catalinlazar_ringamp_bgap_ihp`) is a small library of
 seven SG13G2 analog primitives sharing one 1x2 analog tile:
 
 1. **Block 0 — Dynamic latched comparator** (StrongARM / double-tail latch)
-2. **Block 1 — Ring-amplifier (FEA-style) OTA**
+2. **Block 1 — Ring-amplifier OTA**
 3. **Block 2 — CMOS 1.2V-class voltage reference** (Banba-style, current-summed; NPN unavailable / PNP uncharacterized on this CMOS-only PDK, so this is subthreshold-CMOS, not a bipolar bandgap)
 4. **Block 3 — Switched-capacitor bandgap** ("end-of-life" variant, built
    from Blocks 0 and 1)

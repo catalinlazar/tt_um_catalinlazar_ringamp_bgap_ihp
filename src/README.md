@@ -3,7 +3,7 @@
 - `behavioral/` — Verilog-A behavioral models, used for early top-level
   verification before transistor-level schematics exist:
   - `comparator_beh.va` — Block 0, StrongARM/double-tail comparator
-  - `ringamp_ota_beh.va` — Block 1, ring-amp/FEA-style OTA
+  - `ringamp_ota_beh.va` — Block 1, ring-amp OTA
   - `cmos_vref_beh.va` — Block 2, CMOS 1.2V-class voltage reference:
     current-summed (Banba-style) PTAT+CTAT model using subthreshold-biased
     CMOS devices, parameterized (N, n_slope, R1-R3, k1/k2), targets ~1.0V

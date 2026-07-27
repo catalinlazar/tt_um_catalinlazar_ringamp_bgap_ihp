@@ -15,7 +15,7 @@ targeting the IHP SG13CMOS5L (130nm CMOS-only) PDK via [Tiny Tapeout](https://ti
 
 Seven ihp-sg13cmos5l analog primitives on one 1x2 analog tile:
 - Dynamic latched comparator (StrongARM/double-tail)
-- Ring-amplifier (FEA-style) OTA
+- Ring-amplifier OTA
 - CMOS 1.2V-class voltage reference (Banba-style; corrected from an earlier
   HBT-based design - this PDK has no usable NPN and an uncharacterized PNP)
 - Switched-capacitor ("end-of-life") bandgap
