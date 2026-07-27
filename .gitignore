@@ -1,6 +1,7 @@
 # Build/tool output
 *.log
 *.pyc
+*.pdf
 __pycache__/
 runs/
 work/

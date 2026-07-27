@@ -6,7 +6,8 @@ the main proposal documents.*
 
 ## Proposer
 
-Catalin Lazar. CV attached separately (see `Catalin_Lazar_CV_Chipalooza.md`).
+Catalin Lazar. CV attached separately 
+(see `Catalin_Lazar_CV.md` or `Catalin_Lazar_CV.pdf`).
 25+ years of full-custom analog/mixed-signal IC design experience
 (Cadence Virtuoso/Spectre, 130-350nm CMOS/BiCMOS). This is the first
 project using open-source custom analog layout tools (Magic/KLayout/
