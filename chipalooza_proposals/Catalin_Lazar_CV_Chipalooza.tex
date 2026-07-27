@@ -1,0 +1,170 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.74in]{geometry}
+
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
+
+\usepackage{amsmath}
+\usepackage{microtype}
+
+\usepackage{array}
+
+\usepackage{fancyhdr}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{8pt}{6pt}
+
+\setlist[itemize]{leftmargin=*, noitemsep, topsep=2pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancyfoot[C]{\small Catalin Lazar \quad \href{mailto:catalin.lazar.subs@gmail.com}{catalin.lazar.subs@gmail.com} }
+\fancyfoot[R]{\small \thepage}
+
+\begin{document}
+	
+	\begin{center}
+		{\LARGE \textbf{Catalin Lazar}}\\
+		\vspace{4pt}
+		\textbf{Analog Mixed-Signal IC Design Engineer} \\
+		\vspace{4pt}
+		Adliswil, Switzerland  \quad +41 77 496 1857 \\ % \quad +41 44 55 20 001 \\
+		\href{mailto:catalin.lazar.subs@gmail.com}{catalin.lazar.subs@gmail.com} \quad
+		\href{https://www.linkedin.com/in/catalinlazar}{linkedin.com/in/catalinlazar}
+	\end{center}
+	
+	\section*{Professional Summary}
+	Senior analog/mixed-signal IC designer with 25+ years industrial experience delivering low-power, low-noise CMOS circuits for MEMS interfaces, RFID/NFC transponders, LCD drivers and data converters. Full ownership of schematic, layout, verification and tape-out in 130--350\,nm CMOS, including first-time-right silicon in high-volume production. Expertise in comparators, operational amplifiers, voltage/current references, oscillators, SAR ADCs, current-steering DACs, charge pumps and mixed-signal verification (Verilog-AMS, Xcelium/Symphony). Recent open-source silicon submissions via Tiny Tapeout. First project using open-source custom analog layout tools (xschem/ngspice/Magic/KLayout); learning curve disclosed. Seeking to contribute high-quality, fully documented, reusable analog IP blocks for the open PDKs (IHP SG13CMOS5L, sky130, GF180MCU).
+	
+	\section{Professional Experience}
+	
+	\subsubsection*{Senior ASIC Analog Design Engineer \hfill Jul 2017 -- Oct 2025}
+	Syntiant | Knowles | ams -- Rapperswil-Jona, Switzerland \\
+	Mixed-signal MEMS microphone interfaces in CMOS 130\,nm and 300\,nm
+	\begin{itemize}
+		\item Redesigned high-voltage charge pump (47\,V, PSRR $>$40\,dB, noise 2\,$\mu$V$_{rms}$ typ / 8\,$\mu$V$_{rms}$ worst), increasing output by 2.2\,V without added stages/area using statistical SOA margin analysis from production data. Ensured stability, noise and PSRR via SpectreRF; performed SOAC and drive-margin verification.
+		\item Designed low-power low-drift dual ring-oscillator (1.6\,MHz/14\,MHz, 0.75\,$\mu$A/MHz, $<$10\% drift over VT); first-time-right silicon in high-volume production for 6+ years.
+		\item Reduced balancing-amplifier noise from 22 to 13\,$\mu$V$_{rms}$ and redesigned compensation (Ahuja) for increased load (1.4 to 5\,pF).
+		\item Reduced ${\Sigma}{\Delta}$ADC quantizer (SAR architecture) power by 47\% (32 to 17\,$\mu$W), supply scaled to 0.95\,V.
+		\item Implemented current-steering DAC fast trim-mode (10\,ms) for cut-off frequency (7.5\,Hz LFRO) using internal waveform generator and FFT.
+		\item Designed low-cost 3-channel RF EMI filter with ESD (0.3\,mm$^2$); extracted IBIS models.
+		\item Conducted top-level mixed-signal verification with Xcelium/Symphony using Verilog-AMS models.
+		\item Introduced Trojan States Elimination and Spectre floating-node checks (dyn\_floatdcpath) for robust start-up over PVT.
+		\item Owned full custom flow: schematic, layout (DRC/LVS/PEX/DFM), tape-out, yield support, production.
+	\end{itemize}
+	
+	\subsubsection*{IC Analog Design Engineer \hfill Jan 2006 -- Jun 2017}
+	EM Microelectronic -- Marin, Switzerland \\
+	Ultra-low-power HF/UHF RFID transponders and smartpen ASICs in CMOS\,180\,nm
+	\begin{itemize}
+		\item Designed first-in-company UHF RFID temperature sensor: low-power (8\,$\mu$A) ${\Sigma}{\Delta}$ADC.
+		\item Developed low-power PLL (900\,mV, 1.4\,$\mu$A, 4\,MHz).
+		\item Designed 24\,V/400\,kHz pulse transmitter using experimental LDMOS ahead of PDK; collaborated with process team.
+		\item Owned power-management blocks: rectifier, charge-pump doubler, PTAT/current reference, bandgap reference, LDO.
+		\item Implemented demodulators, TSPC prescalers.
+		\item Full design flow: schematic/layout (LayoutXL), DRC/LVS/PEX/DFM (PVS/QRC/Calibre), job-view verification.
+		\item Characterized prototypes, supported production yield improvement.
+		\item Achieved 1\,m HF RFID read range at 10\,$\mu$A total consumption.
+	\end{itemize}
+	
+	\subsubsection*{IC Analog Design Engineer \hfill Jun 2002 -- Dec 2005}
+	Philips Semiconductors -- Zürich, Switzerland \\
+	LCD drivers in 350\,nm high-voltage CMOS
+	\begin{itemize}
+		\item Designed power-management blocks, rail-to-rail opamps, column buffers, comparators.
+		\item Full schematic and layout flow; scripted ERC filters in Perl and created PCells with SKILL.
+	\end{itemize}
+	
+	\subsubsection*{IC Analog Design Engineer \hfill Oct 2000 -- May 2002}
+	Antrim Design Systems -- Le Vaud, Switzerland \\
+	Nyquist-rate data-converter IP in 180--350\,nm CMOS
+	\begin{itemize}
+		\item Designed R-DAC drivers for 12-bit 2\,MS/s SAR ADC; 10-bit 100\,MHz current-steering DAC unit-cell.
+		\item Designed 900\,MHz Gm-C filter, opamps, comparators.
+		\item Transferred pipeline ADC sample-and-hold from 350\,nm to 180\,nm CMOS.
+		\item Verified folding-interpolating ADC using Verilog-A model.
+	\end{itemize}
+	
+	\subsubsection*{IC Analog Design Engineer \hfill Aug 1999 -- Sep 2000}
+	Melexis -- Bevaix, Switzerland \\
+	RFID reader and transponder ICs in 0.6\,$\mu$m CMOS
+	\begin{itemize}
+		\item Designed Sallen-Key anti-aliasing filters, charge pumps, clock recovery, low-power TSPC prescalers.
+	\end{itemize}
+	
+	\section{Earlier Research Experience}
+	\subsubsection*{Research Fellow -- CERN (SL Division) \hfill Nov 1996 -- Jul 1999}
+	\begin{itemize}
+		\item[] Designed and prototyped fast-pulsed septum electromagnet for LHC injection: 1\,T field with 500\,ppm/cm homogeneity.
+	\end{itemize}
+	
+	\subsubsection*{Ph.D. Candidate -- femto-st Optical Laboratory \hfill Nov 1991 -- Oct 1996}
+	University of Franche-Comté, Besançon, France
+	\begin{itemize}
+		\item[] Dissertation: \href{https://theses.fr/1997BESA2044}{Tunable optical frequency filter by double Fabry-Pérot cavity on LiNbO$_3$}. Designed, micro-fabricated and characterised double-cavity electro-optically tunable Fabry-Pérot filter on Ti-diffused LiNbO$_3$ waveguides.
+	\end{itemize}
+	
+	\section{Education}
+	Ph.D. in Integrated Optics -- University of Franche-Comté, Besançon \hfill 1997 \\
+	DEA Electronics (Optical Communications) -- University of Limoges \hfill 1991 \\
+	B.Sc. Electronics \& Telecommunications -- Polytechnic Institute Bucharest \hfill 1990 \\
+	\quad Major: Electronic Devices \& Components / Microelectronics \quad GPA 9.98/10
+	
+	\section*{Skills}
+	Cadence Virtuoso / ADE / Layout XL / Spectre (X, RF: PSS, Pnoise, Pstab) / AFS / Verilog-AMS / Xcelium / Symphony / Ocean / DRC / LVS / PEX / DFM / Calibre / IBIS \\
+	Open-source EDA (first use): xschem, ngspice, Magic, KLayout \\
+	MATLAB / Python (NumPy, Pandas, SciPy, SymPy) / Perl / SKILL / Git / SVN / Perforce \\
+	Low-power / low-noise design / charge pumps / ring oscillators / SAR ADC / current-steering DAC / PLL / voltage \& current references / mixed-signal verification / DFMEA
+	
+	\section*{Open-Source Silicon}
+	\begin{itemize}
+		\item \href{https://tinytapeout.com/chips/ttihp26a/tt_um_catalinlazar_ihp_osc_array}{IHP Gate Delay Characterizer} (Tiny Tapeout IHP 26a) -- 3-flavor ring-oscillator array
+		\item \href{https://tinytapeout.com/chips/ttsky26a/tt_um_catalinlazar_tinycore8}{TinyCore8} (Tiny Tapeout SKY 26a) -- basic CPU
+		\item \href{https://tinytapeout.com/chips/ttsky26b/tt_um_catalinlazar_adpll_125m_sky130}{127-stage Coarse-Tapped ADPLL} (Tiny Tapeout SKY 26b)
+	\end{itemize}
+	
+	\section*{Languages}
+	English (C1) | French (C1) | German (B2+) | Romanian (C2) | Spanish (A2) | Italian (A1)
+	
+	\section*{Citizenship}
+	Romanian \& Swiss
+	
+%	\newpage
+	
+	\section*{Patents}
+	\begin{itemize}
+		\item \href{https://patents.justia.com/patent/11979714}{US 11,979,714 B2} (2024): Optical transducer and method for measuring displacement
+		\item \href{https://patents.justia.com/patent/11808654}{US 11,808,654 B2} (2023): Integrated optical transducer and method for detecting dynamic pressure changes
+		\item \href{https://patents.justia.com/patent/20220337034}{US App. 20220337034} (2022): Optical device, photonic detector, and method of manufacturing an optical device
+		\item \href{https://patents.justia.com/patent/20220337032}{US App. 20220337032} (2022): Tuning arrangement and method for tuning
+		\item \href{https://patents.justia.com/patent/10361593}{US 10,361,593 B2} (2019): Dual frequency HF-UHF identification device
+	\end{itemize}
+	
+	\section*{Selected Courses}
+	\begin{itemize}
+		\item Getting the Best Spectre Simulator Results -- Andrew Beckett, Cadence, 2025
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770399649634/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Precision Low-Dropout Regulators -- Prof. Yan Lu, 2025}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770399502852/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{High-Performance SERDES Design -- Prof. Sam Palermo, 2025}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770399336322/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{The Art of CMOS RF Design \& Layout -- Prof. Patrick Reynaert, 2025}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770399006787/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Extreme SAR ADCs -- Prof. Chi-Hang Chan, 2024}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770398798600/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Energy-Efficient Analog IC Design -- Prof. Patrick Mercier, 2024}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770398631011/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{CMOS RF Transceivers -- Prof. Thomas Cho, 2023}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770397800892/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Practical Filter Design Techniques -- Prof. Shanthi Pavan, 2023}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770397647267/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Modern Wireline Transceivers -- Prof. Tony Chan Carusone, 2023}
+		\item \href{https://www.linkedin.com/in/catalinlazar/details/featured/1770397508647/single-media-viewer?type=DOCUMENT&profileId=ACoAAABWgUwBQR0tFyQ9UTnHbgKpClf9KcONx88}{Advanced ADC Design Techniques -- Prof. Seung-Tak Ryu, 2022}
+		\item Analog design -- Prof. Maher Kayal (EPFL)
+		\item Deep-submicron CMOS IC design -- Harry Veendrick
+		\item ESD phenomena in ICs -- NXP / Philips
+		\item Cadence trainings: QRC, Spectre, SKILL, Ultrasim, XL Layout Editor
+	\end{itemize}
+	
+\end{document}
